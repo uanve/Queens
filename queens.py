@@ -1,3 +1,4 @@
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -17,6 +18,12 @@ class QueensSolver:
         
         self.result = None
         
+    def execute_linkedin(self):
+        self._get_data_linkedin()
+        result = self._solve_cp()
+        self.input_solution(result)
+        self.input_solution(result)
+        
         
     def execute(self):
         self._get_data()
@@ -25,13 +32,45 @@ class QueensSolver:
             self.input_solution(result)
         else:
             print("no result...")
+            
+    def log_in_linkedin(self):
+        # Path to your chromedriver
+        chrome_options = Options()
+        # Initialize driver
+        self.driver = webdriver.Chrome(options=chrome_options)
+        # Open LinkedIn
+        self.driver.get("https://www.linkedin.com")
+            
+            
+    def _get_data_linkedin(self):
+        self.driver.get("https://www.linkedin.com/games/queens")
+        board_xpath = '/html/body/div[7]/div[3]/div/div[1]/div[2]/div/div/main/div/div[1]/section'
+        board = self.driver.find_element(By.XPATH, board_xpath)
+        # Only immediate children (the cells)
+        cells = board.find_elements("css selector", ".queens-cell-with-border")
+            
+        size = int(len(cells)**0.5)
+        
+        grid_data = {}
+        grid_elements = {}
+        # Find all game cells on the page
+        for i, cell in enumerate(cells):
+            x = i % size
+            y = i // size
+            classes = cell.get_attribute("class").split()
+            color_class = [c for c in classes if c.startswith("cell-color-")]
+            color_id = int(color_class[0].split("-")[-1]) if color_class else 0
+            # Use a string key "x,y" to represent the cell's position
+            grid_data[(x, y)] = color_id
+            grid_elements [(x, y)] = cell
+        
+        self.grid_data = grid_data
+        self.grid_elements = grid_elements
     
 
     def _get_data(self):
         # Set up Chrome options
         chrome_options = Options()
-        # Comment out or remove the headless argument to see the browser window
-        # chrome_options.add_argument("--headless")
         
         # Initialize the Chrome driver.
         self.driver = webdriver.Chrome(options=chrome_options)
@@ -105,4 +144,8 @@ if __name__ == "__main__":
     game_url = "https://www.queens-game.com/?map=map66"
     queens = QueensSolver(game_url)
     queens.execute()
+    
+    queens = QueensSolver("")
+    queens.log_in_linkedin()
+    queens.execute_linkedin()
     
